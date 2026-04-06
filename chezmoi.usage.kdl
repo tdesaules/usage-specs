@@ -1,194 +1,300 @@
 name "chezmoi"
 bin "chezmoi"
 about "Manage your dotfiles across multiple diverse machines, securely."
-version "2.70.0"
-flag "-c --config <FILE>" help="The configuration file"
-flag "-D --destination <DIR>" help="The destination directory"
-flag "-S --source <DIR>" help="The source directory"
-flag "-n --dry-run" help="Do not make any changes"
-flag "-v --verbose" help="Print more information"
-flag "--cache <DIR>" help="The cache directory"
-flag "--color <WHEN>" help="Colorize output" {
-    choices "always" "auto" "never"
-}
-flag "--config-format <FORMAT>" help="The configuration file format" {
-    choices "json" "jsonc" "toml" "yaml"
-}
-flag "--force" help="Make changes without prompting"
-flag "-k --keep-going" help="Keep going after errors"
-flag "--no-pager" help="Do not use a pager"
-flag "--no-tty" help="Do not use a TTY"
-flag "-o --output <FILE>" help="Write output to <FILE> instead of stdout"
-flag "--progress <WHEN>" help="Show progress" {
-    choices "always" "auto" "never"
-}
-flag "-R --refresh-externals <WHEN>" help="Refresh external resources" {
-    choices "always" "auto" "never"
-}
-flag "--use-builtin-age <BOOL>" help="Use builtin age"
-flag "--use-builtin-git <BOOL>" help="Use builtin git"
-flag "--cpu-profile <FILE>" help="Write a CPU profile to <FILE>"
-flag "--mem-profile <FILE>" help="Write a memory profile to <FILE>"
-flag "--trace <FILE>" help="Write a trace to <FILE>"
-cmd "add" help="Add files to the source state" {
+version "2.70.0" 
+
+# https://www.chezmoi.io/reference/command-line-flags/global/
+flag "--cache" help="Set cache directory" global=#true { arg "<dir>" }
+flag "--color" help="Colorize output" global=#true { arg "<auto|on|off>" }
+flag "-c --config" help="Set config file path" global=#true { arg "<file>" }
+flag "--config-format" help="Set config file format" global=#true { arg "<format>" }
+flag "-D --destination" help="Set destination directory" global=#true { arg "<dir>" }
+flag "-n --dry-run" help="Do not make any modifications to the destination directory" global=#true
+flag "-k --keep-going" help="Keep going as far as possible after an error" global=#true
+flag "-m --mode" help="Mode (symlink, file)" global=#true { arg "<mode>" }
+flag "--no-pager" help="Do not use the pager" global=#true
+flag "--no-tty" help="Do not attempt to get a TTY for prompting" global=#true
+flag "-o --output" help="Output format" global=#true { arg "<format>" }
+flag "--persistent-state" help="Set persistent state file path" global=#true { arg "<file>" }
+flag "-R --refresh-externals" help="Refresh external data (e.g. from GitHub or URLs) globally" global=#true { arg "<auto|always>" }
+flag "--safe" help="Write files safely (atomically)" global=#true
+flag "-S --source" help="Set source directory" global=#true { arg "<dir>" }
+flag "--source-path" help="Set source path" global=#true { arg "<path>" }
+flag "--use-builtin-age" help="Use builtin age" global=#true { arg "<auto|true|false>" }
+flag "--use-builtin-git" help="Use builtin git" global=#true { arg "<auto|true|false>" }
+flag "-v --verbose" help="Make output more verbose" global=#true
+flag "--version" help="Print version and exit" global=#true
+
+# https://www.chezmoi.io/reference/command-line-flags/common/
+flag "--age-recipient" help="Temporarily override the age recipient for this command" global=#true { arg "<recipient>" }
+flag "--age-recipient-file" help="Temporarily override the age recipient from a file" global=#true { arg "<recipient-file>" }
+flag "-x --exclude" help="Exclude entry types (e.g. dirs, files, symlinks, encrypted)" global=#true { arg "<types>" }
+flag "-f --format" help="Output format (json, yaml)" global=#true { arg "<format>" }
+flag "-h --help" help="Print help" global=#true
+flag "-i --include" help="Include entry types (e.g. dirs, files, symlinks, encrypted)" global=#true { arg "<types>" }
+flag "--init" help="Recreate config file from template" global=#true
+flag "--override-data" help="Temporarily override template data" global=#true { arg "<json-data>" }
+flag "--override-data-file" help="Temporarily override template data from a file" global=#true { arg "<filename>" }
+flag "-P --parent-dirs" help="Create parent directories" global=#true
+flag "-p --path-style" help="Path style" global=#true { arg "<style>" }
+flag "-r --recursive" help="Recurse into subdirectories" global=#true
+flag "--tree" help="Print tree" global=#true
+
+# https://www.chezmoi.io/reference/command-line-flags/developer/
+flag "--debug" help="Enable debug output" global=#true
+flag "--cpu-profile" help="Write a CPU profile to file" global=#true { arg "<file>" }
+flag "--memory-profile" help="Write a memory profile to file" global=#true { arg "<file>" }
+flag "--trace-profile" help="Write a trace profile to file" global=#true { arg "<file>" }
+
+# https://www.chezmoi.io/reference/commands/add
+# https://www.chezmoi.io/reference/commands/manage
+cmd "add" help="Add an existing file, directory, or symlink to the source state" {
     alias "manage"
-    flag "-f --follow" help="Follow symlinks"
-    flag "-p --prompt" help="Prompt for each file"
-    flag "-r --recursive" help="Add directories recursively"
+    arg "<targets>..." required=#true var=#true
+    flag "-e --exact" help="Add directories exactly"
+    flag "-f --force" help="Add otherwise ignored files"
+    flag "-p --prompt" help="Prompt before adding each file"
     flag "-T --template" help="Add files as templates"
-    flag "--encrypt" help="Encrypt files"
-    flag "--exact" help="Add directories exactly"
-    arg "<paths>..." help="Files or directories to add"
+    flag "--template-symlinks" help="Add symlinks as templates"
 }
-cmd "age" help="Interact with age" {
-    cmd "decrypt" { arg "<file>" }
-    cmd "encrypt" { arg "<file>" }
-    cmd "keygen" help="Generate a new age key pair"
+
+# https://www.chezmoi.io/reference/commands/age
+cmd "age" help="Interact with age encryption" {
+    cmd "decrypt" help="Decrypt files using age" { arg "<files>..." var=#true }
+    cmd "encrypt" help="Encrypt files using age" { arg "<files>..." var=#true }
 }
-cmd "age-keygen" help="Generate a new age key pair"
+
+# https://www.chezmoi.io/reference/commands/age-keygen
+cmd "age-keygen" help="Generate a new age key" {
+    flag "-o --output" help="Output file for the generated key" { arg "<file>" }
+}
+
+# https://www.chezmoi.io/reference/commands/apply
 cmd "apply" help="Update the destination directory to match the target state" {
-    flag "--init" help="Recreate the config file from the template"
-    arg "<paths>..." help="Files or directories to apply" optional=true
+    arg "[<targets>...]" var=#true
+    flag "-e --exact" help="Remove unmanaged files and directories"
+    flag "-p --prompt" help="Prompt before making modifications"
 }
-cmd "archive" help="Write an archive of the target state to stdout" {
-    flag "--format <FORMAT>" help="Archive format" {
-        choices "tar" "tar.gz" "tar.bz2" "tar.xz" "zip"
-    }
+
+# https://www.chezmoi.io/reference/commands/archive
+cmd "archive" help="Generate a tar archive of the target state" {
+    arg "[<targets>...]" var=#true
+    flag "--gzip" help="Compress output with gzip"
 }
-cmd "cat" help="Print the target contents of a file" {
-    arg "<path>" help="File to print"
+
+# https://www.chezmoi.io/reference/commands/cat
+cmd "cat" help="Print the target contents of a file, script, or symlink" {
+    arg "<targets>..." required=#true var=#true
 }
+
+# https://www.chezmoi.io/reference/commands/cat-config
 cmd "cat-config" help="Print the configuration file"
-cmd "cd" help="Launch a shell in the source directory"
-cmd "chattr" help="Change the attributes of a file in the source state" {
-    arg "<attributes>" help="Attributes (e.g. [+|-][template,encrypted,private,etc])"
-    arg "<paths>..." help="Files to change"
+
+# https://www.chezmoi.io/reference/commands/cd
+cmd "cd" help="Launch a shell in the source directory" {
+    arg "[<command>]" var=#true help="Optional command to run instead of interactive shell"
 }
-cmd "completion" help="Generate shell completion scripts" {
-    arg "<shell>" help="The shell to generate for" {
-        choices "bash" "fish" "powershell" "zsh"
-    }
+
+# https://www.chezmoi.io/reference/commands/chattr
+cmd "chattr" help="Change the attributes of a target in the source state" {
+    arg "<modifiers>" required=#true help="e.g. +executable, -private"
+    arg "<targets>..." required=#true var=#true
 }
-cmd "data" help="Print the available template data" {
-    flag "--format <FORMAT>" help="Output format" {
-        choices "json" "yaml"
-    }
+
+# https://www.chezmoi.io/reference/commands/completion
+cmd "completion" help="Generate shell completion code" {
+    arg "<shell>" required=#true help="bash, fish, powershell, zsh"
 }
-cmd "decrypt" help="Decrypt a file" {
-    arg "<path>" help="File to decrypt"
+
+# https://www.chezmoi.io/reference/commands/data
+cmd "data" help="Print the template data"
+
+# https://www.chezmoi.io/reference/commands/decrypt
+cmd "decrypt" help="Decrypt file or standard input" {
+    arg "[<files>...]" var=#true
 }
-cmd "destroy" help="Purge chezmoi's configuration, source directory, and state" {
-    flag "--force" help="Destroy without prompting"
+
+# https://www.chezmoi.io/reference/commands/destroy
+cmd "destroy" help="Remove all chezmoi state and unmanage all files" {
+    flag "-f --force" help="Destroy without prompting"
 }
-cmd "diff" help="Show differences between target and destination state" {
-    flag "--reverse" help="Show differences in reverse"
-    arg "<paths>..." help="Files or directories to diff" optional=true
+
+# https://www.chezmoi.io/reference/commands/diff
+cmd "diff" help="Print the diff between the target state and the destination state" {
+    arg "[<targets>...]" var=#true
+    flag "--reverse" help="Reverse the direction of the diff"
 }
-cmd "docker" help="Run chezmoi inside a Docker container" {
-    cmd "run" { arg "<image>"; arg "<args>..." optional=true }
-    cmd "exec" { arg "<container>"; arg "<args>..." optional=true }
+
+# https://www.chezmoi.io/reference/commands/docker
+cmd "docker" help="Interact with Docker" {
+    cmd "init" help="Initialize Docker integration"
 }
+
+# https://www.chezmoi.io/reference/commands/doctor
 cmd "doctor" help="Check your system for potential problems"
-cmd "dump" help="Write the target state to stdout" {
-    flag "-i --include <TYPES>" help="Include only specified entry types"
-    flag "-x --exclude <TYPES>" help="Exclude specified entry types"
-    flag "--format <FORMAT>" help="Output format" { choices "json" "yaml"; }
+
+# https://www.chezmoi.io/reference/commands/dump
+cmd "dump" help="Generate a dump of the target state" {
+    arg "[<targets>...]" var=#true
 }
-cmd "dump-config" help="Write the configuration to stdout"
-cmd "edit" help="Edit the source state of files" {
-    flag "--apply" help="Apply changes after editing"
-    flag "--diff" help="Show differences after editing"
-    arg "<paths>..." help="Files to edit"
+
+# https://www.chezmoi.io/reference/commands/dump-config
+cmd "dump-config" help="Dump the configuration"
+
+# https://www.chezmoi.io/reference/commands/edit
+cmd "edit" help="Edit the source state of a target" {
+    arg "<targets>..." required=#true var=#true
+    flag "-a --apply" help="Apply target state after editing"
+    flag "-d --diff" help="Print diff after editing"
+    flag "-p --prompt" help="Prompt before applying"
 }
+
+# https://www.chezmoi.io/reference/commands/edit-config
 cmd "edit-config" help="Edit the configuration file"
+
+# https://www.chezmoi.io/reference/commands/edit-config-template
 cmd "edit-config-template" help="Edit the configuration file template"
+
+# https://www.chezmoi.io/reference/commands/edit-encrypted
 cmd "edit-encrypted" help="Edit an encrypted file" {
-    arg "<paths>..." help="Files to edit"
+    arg "<file>" required=#true
 }
-cmd "encrypt" help="Encrypt a file" {
-    arg "<path>" help="File to encrypt"
+
+# https://www.chezmoi.io/reference/commands/encrypt
+cmd "encrypt" help="Encrypt file or standard input" {
+    arg "[<files>...]" var=#true
 }
-cmd "execute-template" help="Execute one or more templates" {
-    flag "-p --prompt" help="Prompt for template data"
-    arg "<templates>..." help="Template strings or files" optional=true
+
+# https://www.chezmoi.io/reference/commands/execute-template
+cmd "execute-template" help="Execute a template and print the result" {
+    arg "[<templates>...]" var=#true
+    flag "-i --promptString" help="Provide template inputs" { arg "<key=value>" }
 }
-cmd "forget" help="Remove files from the source state without removing them from destination" {
+
+# https://www.chezmoi.io/reference/commands/forget
+# https://www.chezmoi.io/reference/commands/unmanage
+cmd "forget" help="Remove a target from the source state" {
     alias "unmanage"
-    arg "<paths>..." help="Files to forget"
+    arg "<targets>..." required=#true var=#true
 }
-cmd "generate" help="Generate a file" {
-    arg "<path>" help="Path to generate"
+
+# https://www.chezmoi.io/reference/commands/generate
+cmd "generate" help="Generate a file from a template" {
+    arg "<targets>..." var=#true
 }
+
+# https://www.chezmoi.io/reference/commands/git
 cmd "git" help="Run git in the source directory" {
-    arg "<args>..." help="Arguments for git"
+    arg "<args>..." var=#true
 }
+
+# https://www.chezmoi.io/reference/commands/help
 cmd "help" help="Help about any command" {
-    arg "<command>" help="Command to get help for" optional=true
+    arg "[<command>]"
 }
-cmd "ignored" help="List ignored files" {
-    flag "--tree" help="List ignored files as a tree"
+
+# https://www.chezmoi.io/reference/commands/ignored
+cmd "ignored" help="Print ignored targets"
+
+# https://www.chezmoi.io/reference/commands/import
+cmd "import" help="Import a tar archive into the source state" {
+    flag "--destination" help="Destination path within the source directory" { arg "<dir>" }
+    flag "--exact" help="Import exact directories"
+    flag "--strip-components" help="Strip leading path components" { arg "<n>" }
 }
-cmd "import" help="Import the source state from an archive" {
-    arg "<archive>" help="Archive to import"
+
+# https://www.chezmoi.io/reference/commands/init
+cmd "init" help="Setup the source directory and generate the config file" {
+    arg "[<repo>]" help="Git repository URL"
+    flag "--apply" help="Update destination directory after initialization"
+    flag "--branch" help="Branch to checkout" { arg "<branch>" }
+    flag "--depth" help="Clone depth" { arg "<depth>" }
+    flag "--guess-repo-url" help="Guess the repo URL"
+    flag "--one-shot" help="Run in one-shot mode (init, apply, then purge)"
+    flag "--purge" help="Purge the source directory before initialization"
+    flag "--ssh" help="Use ssh instead of https for default git URL"
 }
-cmd "init" help="Setup the source directory and optionally clone a repository" {
-    flag "--apply" help="Apply changes after initialization"
-    flag "--data" help="Prompt for template data"
-    flag "--ssh" help="Use SSH to clone the repository"
-    flag "--branch <BRANCH>" help="Branch to checkout"
-    arg "<repo>" help="URL or GitHub username/repo" optional=true
-}
+
+# https://www.chezmoi.io/reference/commands/license
 cmd "license" help="Print the license"
-cmd "managed" help="List managed files" {
-    alias "list"
-    alias "ls"
-    flag "-i --include <TYPES>" help="Include only specified entry types"
-    flag "-x --exclude <TYPES>" help="Exclude specified entry types"
+
+# https://www.chezmoi.io/reference/commands/list
+cmd "list" help="List the managed targets"
+
+# https://www.chezmoi.io/reference/commands/managed
+cmd "managed" help="List the managed targets in the destination directory"
+
+# https://www.chezmoi.io/reference/commands/merge
+cmd "merge" help="Perform a three-way merge of a file" {
+    arg "<target>" required=#true
 }
-cmd "merge" help="Merge changes from the source state into the destination" {
-    arg "<paths>..." help="Files to merge"
+
+# https://www.chezmoi.io/reference/commands/merge-all
+cmd "merge-all" help="Perform a three-way merge of all modified files"
+
+# https://www.chezmoi.io/reference/commands/podman
+cmd "podman" help="Interact with Podman"
+
+# https://www.chezmoi.io/reference/commands/purge
+cmd "purge" help="Purge chezmoi state and optionally config"
+
+# https://www.chezmoi.io/reference/commands/re-add
+cmd "re-add" help="Re-add all managed targets" {
+    arg "[<targets>...]" var=#true
 }
-cmd "merge-all" help="Merge all changes from the source state into the destination"
-cmd "podman" help="Run chezmoi inside a Podman container"
-cmd "purge" help="Purge chezmoi's configuration and source directory"
-cmd "re-add" help="Re-add files to the source state" {
-    arg "<paths>..." help="Files or directories to re-add" optional=true
-}
-cmd "remove" help="Remove files from the source state and the destination" {
+
+# https://www.chezmoi.io/reference/commands/remove
+# https://www.chezmoi.io/reference/commands/rm
+cmd "remove" help="Remove a target from the source state and the destination directory" {
     alias "rm"
-    arg "<paths>..." help="Files to remove"
+    arg "<targets>..." required=#true var=#true
+    flag "-f --force" help="Remove without prompting"
 }
+
+# https://www.chezmoi.io/reference/commands/secret
 cmd "secret" help="Interact with a secret manager" {
-    cmd "keyring" {
-        cmd "get" { flag "--service <S>"; flag "--user <U>" }
-        cmd "set" { flag "--service <S>"; flag "--user <U>"; flag "--value <V>" }
-        cmd "delete" { flag "--service <S>"; flag "--user <U>" }
-    }
+    arg "<args>..." var=#true
 }
-cmd "source-path" help="Print the source path of a file" {
-    arg "<paths>..." help="Files to get paths for" optional=true
+
+# https://www.chezmoi.io/reference/commands/source-path
+cmd "source-path" help="Print the path of a target in the source state" {
+    arg "[<targets>...]" var=#true
 }
+
+# https://www.chezmoi.io/reference/commands/ssh
 cmd "ssh" help="Run ssh in the source directory" {
-    arg "<args>..." help="Arguments for ssh"
+    arg "<args>..." var=#true
 }
-cmd "state" help="Interact with the state database" {
-    cmd "data"
-    cmd "delete" { arg "<key>" }
-    cmd "dump"
-    cmd "get" { arg "<key>" }
-    cmd "reset"
-    cmd "set" { arg "<key>"; arg "<value>" }
+
+# https://www.chezmoi.io/reference/commands/state
+cmd "state" help="Manipulate the persistent state" {
+    cmd "dump" help="Dump the state"
+    cmd "delete" help="Delete a state bucket or key" { arg "<bucket> [<key>]" var=#true }
+    cmd "reset" help="Reset the state"
 }
-cmd "status" help="Show the status of managed files" {
-    arg "<paths>..." help="Files to check" optional=true
+
+# https://www.chezmoi.io/reference/commands/status
+cmd "status" help="Show the status of the destination state" {
+    arg "[<targets>...]" var=#true
 }
-cmd "target-path" help="Print the target path of a file" {
-    arg "<paths>..." help="Files to get paths for" optional=true
+
+# https://www.chezmoi.io/reference/commands/target-path
+cmd "target-path" help="Print the target path of a source state file" {
+    arg "[<targets>...]" var=#true
 }
-cmd "update" help="Pull changes from the source repository and apply them" {
-    flag "--apply" help="Apply changes after updating"
+
+# https://www.chezmoi.io/reference/commands/unmanaged
+cmd "unmanaged" help="List the unmanaged files in the destination directory"
+
+# https://www.chezmoi.io/reference/commands/update
+cmd "update" help="Pull changes from the source VCS and apply any changes" {
+    flag "-a --apply" help="Apply after pulling"
 }
+
+# https://www.chezmoi.io/reference/commands/upgrade
 cmd "upgrade" help="Upgrade chezmoi to the latest version"
-cmd "verify" help="Verify that the destination state matches the target state" {
-    arg "<paths>..." help="Files or directories to verify" optional=true
+
+# https://www.chezmoi.io/reference/commands/verify
+cmd "verify" help="Exit with success if the destination state matches the target state, fail otherwise" {
+    arg "[<targets>...]" var=#true
 }
