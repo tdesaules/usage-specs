@@ -1,0 +1,64 @@
+name "eza"
+bin "eza"
+about "A modern, maintained replacement for ls."
+version "0.18.0" # Version de référence début 2026
+
+# --- Arguments positionnels ---
+arg "<paths>..." help="Files or directories to list" optional=true
+
+# --- Options d'affichage (Display Options) ---
+flag "-1 --oneline" help="Display one entry per line"
+flag "-F --classify" help="Display type indicator by file names"
+flag "-G --grid" help="Display entries as a grid (default)"
+flag "-l --long" help="Display extended file metadata as a table"
+flag "-R --recurse" help="Recurse into directories"
+flag "-T --tree" help="Recurse into directories as a tree"
+flag "-x --across" help="Sort the grid across, rather than downwards"
+flag "-d --list-dirs" help="List directories like regular files"
+flag "-o --octal-permissions" help="List each file's permissions in octal"
+flag "--hyperlink" help="Display entries as hyperlinks"
+flag "-w --width <COLS>" help="Limit the grid width to <COLS> characters"
+
+# --- Filtrage (Filtering Options) ---
+flag "-a --all" help="Show hidden and 'dot' files"
+flag "-A --almost-all" help="Equivalent to --all, but doesn't list '.' or '..'"
+flag "-D --only-dirs" help="List only directories"
+flag "-f --only-files" help="List only files"
+flag "--level <DEPTH>" help="Limit the depth of recursion"
+flag "-I --ignore-glob <GLOBS>" help="Ignore files that match these glob patterns"
+
+# --- Options de la vue longue (Long View Options) ---
+flag "-b --binary" help="List file sizes with binary prefixes"
+flag "-B --bytes" help="List file sizes in bytes, without any prefixes"
+flag "-g --group" help="List each file's group"
+flag "-h --header" help="Add a header row to each column"
+flag "-H --links" help="List each file's number of hard links"
+flag "-i --inode" help="List each file's inode number"
+flag "-m --modified" help="Use the modified timestamp field"
+flag "-S --blocksize" help="List each file's size of allocated blocks"
+flag "-t --time <FIELD>" help="Which timestamp field to list" {
+    choices "modified" "changed" "accessed" "created"
+}
+flag "--time-style <STYLE>" help="How should timestamps be formatted?" {
+    choices "default" "iso" "long-iso" "full-iso" "relative"
+}
+flag "--git" help="List each file's Git status, if tracked or ignored"
+flag "--git-repos" help="List each directory's Git status, if it's a repo"
+
+# --- Tri (Sorting Options) ---
+flag "-r --reverse" help="Reverse the sort order"
+flag "-s --sort <FIELD>" help="Which field to sort by" {
+    choices "name" "size" "extension" "modified" "changed" "accessed" "created" "inode" "type" "none"
+}
+
+# --- Esthétique (Optional Extras) ---
+flag "--color <WHEN>" help="When to use terminal colors" {
+    choices "always" "auto" "never"
+}
+flag "--color-scale <FIELD>" help="Highlight levels of 'size' or 'age' differently" {
+    choices "all" "age" "size"
+}
+flag "--icons <WHEN>" help="When to display icons" {
+    choices "always" "auto" "never"
+}
+flag "--theme <THEME>" help="Which color theme to use"
