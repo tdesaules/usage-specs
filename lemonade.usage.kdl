@@ -1,0 +1,115 @@
+name "lemonade"
+bin "lemonade"
+about "The lemonade CLI is the primary tool for interacting with Lemonade Server from the terminal."
+
+// Global Options
+flag "--host <HOST>" help="Server host address (default: 127.0.0.1)" global=#true
+flag "--port <PORT>" help="Server port number (default: 13305)" global=#true
+flag "--api-key <KEY>" help="API key for authentication" global=#true
+flag "--help" help="Display help information" global=#true
+flag "--help-all" help="Display help information for all subcommands" global=#true
+flag "--version" help="Print the lemonade CLI version" global=#true
+
+// Commands - Quick Start & Server
+cmd "run" help="Load a model for inference and open the web app in the browser" {
+    arg "<MODEL_NAME>" help="Model name to load and run" required=#true
+    flag "--ctx-size <SIZE>" help="Context size for the model (default: 4096)"
+    flag "--llamacpp <BACKEND>" help="LlamaCpp backend to use"
+    flag "--llamacpp-args <ARGS>" help="Custom arguments to pass to llama-server"
+    flag "--flm-args <ARGS>" help="Custom arguments to pass to flm serve"
+    flag "--sdcpp <BACKEND>" help="SD.cpp backend to use (cpu, rocm)"
+    flag "--sdcpp-args <ARGS>" help="Custom arguments to pass to sd-server"
+    flag "--steps <N>" help="Number of inference steps for image generation"
+    flag "--cfg-scale <SCALE>" help="Classifier-free guidance scale"
+    flag "--width <PX>" help="Image width in pixels"
+    flag "--height <PX>" help="Image height in pixels"
+    flag "--whispercpp <BACKEND>" help="WhisperCpp backend to use"
+    flag "--save-options" help="Persist your configuration for the model"
+    flag "--host <HOST>" help="Server host address"
+    flag "--port <PORT>" help="Server port number"
+}
+
+cmd "launch" help="Launch an agent with a model" {
+    arg "<AGENT>" help="Agent name to launch (claude, codex, opencode)" required=#true
+    flag "--model <MODEL_NAME>" help="Model name to launch with"
+    flag "--directory <DIR>" help="Remote recipes directory used only if you choose recipe import at prompt"
+    flag "--recipe-file <FILE>" help="Remote recipe JSON filename used only if you choose recipe import at prompt"
+    flag "-p --provider <PROVIDER>" help="Codex only: select provider name for Codex config"
+    flag "--agent-args <ARGS>" help="Custom arguments to pass directly to the launched agent process"
+    flag "--ctx-size <SIZE>" help="Context size for the model (default: 4096)"
+    flag "--llamacpp <BACKEND>" help="LlamaCpp backend to use"
+    flag "--llamacpp-args <ARGS>" help="Custom arguments to pass to llama-server"
+}
+
+cmd "status" help="Check if server can be reached. Prints server information." {
+    flag "--json" help="Use for machine-readable output"
+}
+
+cmd "logs" help="Open server logs in the web UI"
+
+cmd "backends" help="List available recipes and backends" {
+    cmd "install" help="Install a backend" {
+        arg "<SPEC>" help="Format: recipe:backend (e.g., llamacpp:vulkan)" required=#true
+        flag "--force" help="Bypass hardware filtering and attempt the install anyway"
+    }
+    cmd "uninstall" help="Uninstall a backend" {
+        arg "<SPEC>" help="Format: recipe:backend (e.g., llamacpp:cpu)" required=#true
+    }
+}
+
+cmd "scan" help="Scan for network beacons on the local network" {
+    flag "--duration <SECONDS>" help="Scan duration in seconds (default: 30)"
+}
+
+// Commands - Model Management
+cmd "list" help="List all available models" {
+    flag "--downloaded" help="Show only downloaded models"
+}
+
+cmd "pull" help="Download a registered model, pull a Hugging Face checkpoint, or manually register a model" {
+    arg "<MODEL_OR_CHECKPOINT>" help="Registered model name, or owner/repo[:variant] Hugging Face checkpoint" required=#true
+    flag "--checkpoint <TYPE> <CHECKPOINT>" help="Manual registration: add a checkpoint entry. Repeat for multi-component models." count=#true
+    flag "--recipe <RECIPE>" help="Manual registration: recipe to associate with the new user.* model" {
+        choices "llamacpp" "flm" "ryzenai-llm" "vllm" "whispercpp" "sd-cpp" "kokoro"
+    }
+    flag "--label <LABEL>" help="Manual registration: add a label to the new model" count=#true {
+        choices "coding" "embeddings" "hot" "reasoning" "reranking" "tool-calling" "vision"
+    }
+}
+
+cmd "import" help="Import a model from a JSON configuration file or browse remote recipes" {
+    arg "[JSON_FILE]" help="Path to a JSON configuration file"
+    flag "--directory <DIR>" help="Remote recipes directory to query (e.g., coding-agents)"
+    flag "--recipe-file <FILE>" help="Specific recipe JSON filename from the selected directory"
+    flag "--skip-prompt" help="Run non-interactively"
+    flag "--yes" help="Alias for --skip-prompt"
+}
+
+cmd "delete" help="Delete a model and its files from local storage" {
+    arg "<MODEL_NAME>" help="Model name to delete" required=#true
+}
+
+cmd "load" help="Load a model into memory for inference" {
+    arg "<MODEL_NAME>" help="Model name to load" required=#true
+    flag "--ctx-size <SIZE>" help="Context size for the model (default: 4096)"
+    flag "--llamacpp <BACKEND>" help="LlamaCpp backend to use"
+    flag "--llamacpp-args <ARGS>" help="Custom arguments to pass to llama-server"
+    flag "--flm-args <ARGS>" help="Custom arguments to pass to flm serve"
+    flag "--sdcpp <BACKEND>" help="SD.cpp backend to use (cpu, rocm)"
+    flag "--sdcpp-args <ARGS>" help="Custom arguments to pass to sd-server"
+    flag "--steps <N>" help="Number of inference steps for image generation (default: 20)"
+    flag "--cfg-scale <SCALE>" help="Classifier-free guidance scale for image generation (default: 7.0)"
+    flag "--width <PX>" help="Image width in pixels (default: 512)"
+    flag "--height <PX>" help="Image height in pixels (default: 512)"
+    flag "--whispercpp <BACKEND>" help="WhisperCpp backend to use"
+    flag "--save-options" help="Persist your configuration for the model"
+}
+
+cmd "unload" help="Unload a model. If no model name is provided, unload all loaded models" {
+    arg "[MODEL_NAME]" help="Model name to unload"
+}
+
+cmd "export" help="Export model information to JSON format" {
+    arg "<MODEL_NAME>" help="Model name to export" required=#true
+    flag "--output <FILE>" help="Output file path. If not specified, prints to stdout"
+}
