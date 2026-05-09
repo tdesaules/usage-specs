@@ -1,0 +1,70 @@
+name "eza"
+bin "eza"
+about "A modern replacement for ls"
+
+arg "<files>..."
+
+// Display options
+flag "-1 --oneline" help="display one entry per line"
+flag "-G --grid" help="display entries as a grid (default)"
+flag "-l --long" help="display extended details and attributes"
+flag "-R --recurse" help="recurse into directories"
+flag "-T --tree" help="recurse into directories as a tree"
+flag "-x --across" help="sort the grid across, rather than downwards"
+flag "-F --classify" help="display type indicator by file names"
+flag "--color <when>" help="when to use terminal colours" {
+    alias "--colour"
+    choices "always" "automatic" "never"
+}
+flag "--color-scale" help="highlight levels of file sizes distinctly" {
+    alias "--colour-scale"
+}
+flag "--icons" help="display icons"
+flag "--no-icons" help="don’t display icons (always overrides --icons)"
+flag "--hyperlink" help="display entries as hyperlinks"
+flag "-w --width <columns>" help="set screen width in columns"
+
+// Filtering options
+flag "-a --all" help="show hidden and 'dot' files (pass twice to show . and ..)" count=#true
+flag "-d --list-dirs" help="list directories like regular files"
+flag "-L --level <depth>" help="limit the depth of recursion"
+flag "-r --reverse" help="reverse the sort order"
+flag "-s --sort <field>" help="which field to sort by" {
+    choices "accessed" "changed" "created" "extension" "Extension" "inode" "modified" "name" "Name" "size" "type" "none" "date" "time" "newest" "age" "oldest"
+}
+flag "--group-directories-first" help="list directories before other files"
+flag "-D --only-dirs" help="list only directories"
+flag "--git-ignore" help="ignore files mentioned in .gitignore"
+flag "-I --ignore-glob <globs>" help="glob patterns (pipe-separated) of files to ignore"
+
+// Long view options
+flag "-b --binary" help="list file sizes with binary prefixes"
+flag "-B --bytes" help="list file sizes in bytes, without any prefixes"
+flag "-g --group" help="list each file’s group"
+flag "-h --header" help="add a header row to each column"
+flag "-H --links" help="list each file’s number of hard links"
+flag "-i --inode" help="list each file’s inode number"
+flag "-m --modified" help="use the modified timestamp field"
+flag "-M --mounts" help="Show mount details (Linux and MacOS only)"
+flag "-S --blocksize" help="show size of allocated file system blocks"
+flag "-t --time <field>" help="which timestamp field to use" {
+    choices "modified" "changed" "accessed" "created"
+}
+flag "-u --accessed" help="use the accessed timestamp field"
+flag "-U --created" help="use the created timestamp field"
+flag "-X --dereference" help="dereference symlinks for file information"
+flag "-Z --context" help="list each file’s security context"
+flag "-@ --extended" help="list each file’s extended attributes and sizes"
+flag "--changed" help="use the changed timestamp field"
+flag "--git" help="list each file’s Git status, if tracked or ignored"
+flag "--git-repos" help="list each directory’s Git status, if tracked"
+flag "--git-repos-no-status" help="list whether a directory is a Git repository, but not its status"
+flag "--no-git" help="suppress Git status"
+flag "--time-style <style>" help="how to format timestamps" {
+    choices "default" "iso" "long-iso" "full-iso" "relative"
+}
+flag "--no-permissions" help="suppress the permissions field"
+flag "-o --octal-permissions" help="list each file’s permission in octal format"
+flag "--no-filesize" help="suppress the filesize field"
+flag "--no-user" help="suppress the user field"
+flag "--no-time" help="suppress the time field"
